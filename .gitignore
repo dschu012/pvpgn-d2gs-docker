@@ -1,0 +1,9 @@
+d2gs/**
+!d2gs/d2gs.reg
+
+pvpgn/etc/pvpgn/*
+!pvpgn/etc/pvpgn/address_translation.conf
+!pvpgn/etc/pvpgn/d2cs.conf
+!pvpgn/etc/pvpgn/d2dbs.conf
+!pvpgn/etc/pvpgn/realm.conf
+pvpgn/var/pvpgn/*
