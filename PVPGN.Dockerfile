@@ -1,56 +1,64 @@
-FROM alpine:latest AS build
+#https://github.com/pvpgn/pvpgn-server/blob/develop/Dockerfile
+# ported to alpine
+
+FROM alpine:latest
+
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+ARG with_mysql=true
+ARG with_sqlite3=false
+ARG with_pgsql=false
+ARG with_odbc=false
+ARG with_lua=true
 
 ### Install build dependencies
 RUN apk --quiet --no-cache add \
-  git \
-  build-base \
-  clang \
-  cmake \
-  make \
-  zlib-dev \
-  curl-dev \
-  lua-dev \
-  mariadb-dev \
-  && rm -rf /var/cache/apk/*
+    git \
+    build-base \
+    clang \
+    cmake \
+    make \
+    zlib-dev \
+    curl-dev \
+    lua-dev \
+    $(if ${with_mysql}; then echo "mariadb-dev mariadb-connector-c"; fi) \
+    $(if ${with_sqlite3}; then echo "sqlite-dev sqlite-libs"; fi) \
+    $(if ${with_pgsql}; then echo "libpq-dev libpq"; fi) \
+    $(if ${with_odbc}; then echo "unixodbc-dev unixodbc"; fi) \
+    $(if ${with_lua}; then echo "lua-dev"; fi) && \
+  git clone --depth 1 --single-branch --branch develop https://github.com/pvpgn/pvpgn-server.git pvpgn-server && \
+  cd pvpgn-server && \
+  cmake -G "Unix Makefiles" -S./ -B./build \
+        -DWITH_LUA=${with_lua} \
+        -DWITH_MYSQL=${with_mysql} \
+        -DWITH_SQLITE3=${with_sqlite3} \
+        -DWITH_PGSQL=${with_pgsql} \
+        -DWITH_ODBC=${with_odbc} \
+        -D CMAKE_INSTALL_PREFIX= && \
+  cd build && make -j$(nproc) && make install && \
+  apk --quiet del \
+      git \
+      build-base \
+      clang \
+      cmake \
+      make \
+      zlib-dev \
+      curl-dev \
+      lua-dev \
+      $(if ${with_mysql}; then echo "mariadb-dev"; fi) \
+      $(if ${with_sqlite3}; then echo "sqlite-dev"; fi) \
+      $(if ${with_pgsql}; then echo "libpq-dev "; fi) \
+      $(if ${with_pgsql}; then echo "libpq-dev"; fi) \
+      $(if ${with_lua}; then echo "lua-dev"; fi) && \
+  apk --quiet --no-cache add \
+    ca-certificates \
+    libstdc++ \
+    libgcc \
+    libcurl \
+    lua5.1-libs \
+  rm -rf /var/lib/apt/lists/* /build/pvpgn-server && \
+  rm -rf /var/cache/apk/*
+  
 
-RUN git clone --depth 1 --single-branch --branch develop https://github.com/pvpgn/pvpgn-server.git /src
-RUN mkdir /src/build /usr/local/pvpgn
-WORKDIR /src
-
-RUN cmake -G "Unix Makefiles" -H./ -B./build \
-  -D WITH_LUA=true \
-  -D WITH_MYSQL=true \
-  -D WITH_SQLITE3=false \
-  -D WITH_PGSQL=false \
-  -D WITH_ODBC=false \
-  -D CMAKE_INSTALL_PREFIX=/pvpgn \
-  ../ && cd build  \
-  && make \
-  && make install
-
-FROM alpine:latest AS runner
-
-RUN apk --quiet --no-cache add \
-  ca-certificates \
-  libstdc++ \
-  libgcc \
-  libcurl \
-  lua5.1-libs \
-  mariadb-connector-c \
-  && rm -rf /var/cache/apk/*
-
-COPY --from=build \
-  /pvpgn/sbin/bnetd \
-  /pvpgn/sbin/bntrackd \
-  /pvpgn/sbin/d2cs \
-  /pvpgn/sbin/d2dbs \
-  /sbin/
-
-COPY --from=build \
-  /pvpgn/bin/bn* \
-  /pvpgn/bin/sha1hash \
-  /pvpgn/bin/tgainfo \
-  /bin/
-
-COPY --from=build /pvpgn/etc/pvpgn /pvpgn/etc/pvpgn
-COPY --from=build /pvpgn/var/pvpgn /pvpgn/var/pvpgn
+WORKDIR /usr/local/sbin

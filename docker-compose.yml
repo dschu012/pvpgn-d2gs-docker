@@ -13,11 +13,11 @@ services:
     build:
       context: .
       dockerfile: PVPGN.Dockerfile
-    # docker run --rm -v $PWD/pvpgn/etc:/usr/local/pvpgn/etc pvpgn-pro:1.99.7.2.1 cp -vnpr /pvpgn/etc/pvpgn/ /usr/local/pvpgn/etc/
-    # docker run --rm -v $PWD/pvpgn/var:/usr/local/pvpgn/var pvpgn-pro:1.99.7.2.1 cp -vnpr /pvpgn/var/pvpgn/ /usr/local/pvpgn/var/
+    # docker run --rm -v $PWD/pvpgn/etc:/usr/local/pvpgn/etc pvpgn-pro:1.99.7.2.1 cp -u -r /etc/pvpgn/ /usr/local/pvpgn/etc
+    # docker run --rm -v $PWD/pvpgn/var:/usr/local/pvpgn/var pvpgn-pro:1.99.7.2.1 cp -u -r /var/pvpgn/ /usr/local/pvpgn/var
     volumes:
-      - $PWD/pvpgn/etc:/pvpgn/etc
-      - $PWD/pvpgn/var:/pvpgn/var
+      - $PWD/pvpgn/etc/pvpgn:/etc/pvpgn
+      - $PWD/pvpgn/var/pvpgn:/var/pvpgn
     extra_hosts:
       - local:${LOCAL_IP}
   pvpgn:
