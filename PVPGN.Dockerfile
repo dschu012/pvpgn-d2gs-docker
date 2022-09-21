@@ -13,7 +13,7 @@ RUN apk --quiet --no-cache add \
   mariadb-dev \
   && rm -rf /var/cache/apk/*
 
-RUN git clone --depth 1 --single-branch --branch master https://github.com/pvpgn/pvpgn-server.git /src
+RUN git clone --depth 1 --single-branch --branch develop https://github.com/pvpgn/pvpgn-server.git /src
 RUN mkdir /src/build /usr/local/pvpgn
 WORKDIR /src
 

@@ -66,8 +66,3 @@ services:
       pvpgn-net:
         ipv4_address: 192.168.55.5
     restart: always
-    healthcheck:
-      test: ss -tanp | grep 4000 || exit 1
-      interval: 5s
-      start_period: 10s
-      retries: 0
